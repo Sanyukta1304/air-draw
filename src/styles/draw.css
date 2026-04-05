@@ -1,0 +1,182 @@
+.draw-page {
+  width: 100%;
+  height: 100vh;
+  background: radial-gradient(circle at center, #1a1c24, #090a0f);
+  position: relative;
+  overflow: hidden;
+}
+
+.camera-status {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  background: rgba(20, 20, 20, 0.9);
+  color: #cfcfcf;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  z-index: 10;
+}
+
+.draw-area {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 30px;
+}
+
+.camera-container {
+  flex: 1;
+  height: 88vh;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(4px);
+}
+
+.control-panel {
+  width: 180px;
+  min-height: 620px;
+  background: rgba(18, 20, 28, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.25);
+}
+
+.panel-section {
+  margin-bottom: 26px;
+  text-align: center;
+}
+
+.panel-section h4 {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  color: #777;
+  margin-bottom: 14px;
+}
+
+.color-palette {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  justify-items: center;
+}
+
+.color-dot {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+}
+
+.panel-section input[type="range"] {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.panel-section p {
+  font-size: 14px;
+  color: #8f8f8f;
+}
+
+.panel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.panel-actions button {
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #1a1d26;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.panel-actions button:hover {
+  background: #232734;
+}
+
+.status-badge {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 10, 14, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #d2d2d2;
+  border-radius: 999px;
+  padding: 14px 24px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-weight: 600;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.25);
+}
+
+.status-icon {
+  font-size: 20px;
+}
+
+.video-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 24px;
+  transform: scaleX(-1);
+}
+
+.landmark-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 24px;
+  pointer-events: none;
+  transform: scaleX(-1);
+}
+
+.gesture-debug {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(10, 10, 14, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  z-index: 5;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.draw-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 24px;
+  pointer-events: none;
+  transform: scaleX(-1);
+}
+
+.active-color {
+  outline: 3px solid white;
+  outline-offset: 3px;
+}
