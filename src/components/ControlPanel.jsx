@@ -5,13 +5,15 @@ const ControlPanel = ({
   onColorChange,
   brushSize,
   onBrushSizeChange,
+  glowValue = 60,
+  onGlowChange,
   onClear,
   onSave,
   onUndo,
 }) => {
   return (
     <div className="control-panel">
-      <div>
+      <div className="panel-top">
         <div className="panel-section">
           <h4>COLORS</h4>
           <ColorPalette
@@ -22,27 +24,44 @@ const ControlPanel = ({
 
         <div className="panel-section">
           <h4>THICKNESS</h4>
-          <input
-            type="range"
-            min="1"
-            max="20"
-            value={brushSize}
-            onChange={(e) => onBrushSizeChange(Number(e.target.value))}
-          />
+          <div className="vertical-slider-wrap">
+            <input
+              className="vertical-slider"
+              type="range"
+              min="1"
+              max="20"
+              value={brushSize}
+              onChange={(e) => onBrushSizeChange(Number(e.target.value))}
+            />
+          </div>
           <p>{brushSize}px</p>
         </div>
 
+        <div className="panel-divider"></div>
+
         <div className="panel-section">
           <h4>GLOW</h4>
-          <input type="range" min="0" max="100" defaultValue="60" />
-          <p>60%</p>
+          <div className="vertical-slider-wrap">
+            <input
+              className="vertical-slider"
+              type="range"
+              min="0"
+              max="100"
+              value={glowValue}
+              onChange={(e) => onGlowChange(Number(e.target.value))}
+            />
+          </div>
+          <p>{glowValue}%</p>
         </div>
+
+        <div className="panel-divider"></div>
       </div>
 
       <div className="panel-actions">
-        <button title="Undo" onClick={onUndo}>↶</button>
-        <button title="Clear" onClick={onClear}>🗑</button>
-        <button title="Save" onClick={onSave}>⇩</button>
+        <button title="Undo" onClick={onUndo} type="button">↶</button>
+        <button title="Clear" onClick={onClear} type="button">🗑</button>
+        <button title="Ready" className="active-tool" type="button">☺</button>
+        <button title="Save" onClick={onSave} type="button">⇩</button>
       </div>
     </div>
   );

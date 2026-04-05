@@ -9,12 +9,17 @@ const Draw = () => {
   const drawCanvasRef = useRef(null);
 
   const [mode, setMode] = useState("READY");
-  const [selectedColor, setSelectedColor] = useState("#00e5ff");
+  const [selectedColor, setSelectedColor] = useState("#19e6ff");
   const [brushSize, setBrushSize] = useState(6);
+  const [glowValue, setGlowValue] = useState(60);
 
   const prevPointRef = useRef(null);
   const strokesRef = useRef([]);
   const currentStrokeRef = useRef(null);
+
+  const getGlowBlur = (glow) => {
+    return Math.max((glow / 100) * 18, 0);
+  };
 
   const redrawStrokes = () => {
     const drawCanvas = drawCanvasRef.current;
@@ -35,10 +40,14 @@ const Draw = () => {
 
       if (stroke.color === "erase") {
         ctx.globalCompositeOperation = "destination-out";
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = "transparent";
         ctx.strokeStyle = "rgba(0,0,0,1)";
       } else {
         ctx.globalCompositeOperation = "source-over";
         ctx.strokeStyle = stroke.color;
+        ctx.shadowColor = stroke.color;
+        ctx.shadowBlur = stroke.glowBlur ?? 0;
       }
 
       ctx.lineWidth = stroke.size;
@@ -47,6 +56,8 @@ const Draw = () => {
       ctx.stroke();
 
       ctx.globalCompositeOperation = "source-over";
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
     });
   };
 
@@ -132,24 +143,19 @@ const Draw = () => {
             const landmarks = results.multiHandLandmarks[0];
 
             drawConnectors(landmarkCtx, landmarks, HAND_CONNECTIONS, {
-              color: "#00e5ff",
+              color: "rgba(255,255,255,0.22)",
               lineWidth: 2,
             });
 
             drawLandmarks(landmarkCtx, landmarks, {
-              color: "#ffffff",
+              color: "rgba(255,255,255,0.88)",
               lineWidth: 1,
               radius: 3,
             });
 
-            const tip = landmarks[8];
-            const x = tip.x * width;
-            const y = tip.y * height;
-
-            landmarkCtx.beginPath();
-            landmarkCtx.arc(x, y, 10, 0, Math.PI * 2);
-            landmarkCtx.fillStyle = "red";
-            landmarkCtx.fill();
+            const indexTip = landmarks[8];
+            const x = indexTip.x * width;
+            const y = indexTip.y * height;
 
             const indexUp = landmarks[8].y < landmarks[6].y;
             const middleUp = landmarks[12].y < landmarks[10].y;
@@ -162,44 +168,106 @@ const Draw = () => {
             const isOpenPalm =
               indexUp && middleUp && ringUp && pinkyUp;
 
+            const palmCenterX =
+              ((landmarks[0].x +
+                landmarks[5].x +
+                landmarks[9].x +
+                landmarks[13].x +
+                landmarks[17].x) /
+                5) *
+              width;
+
+            const palmCenterY =
+              ((landmarks[0].y +
+                landmarks[5].y +
+                landmarks[9].y +
+                landmarks[13].y +
+                landmarks[17].y) /
+                5) *
+              height;
+
+            const eraseRadius = Math.max(brushSize + 18, 24);
             const activeSize = isOpenPalm
-              ? Math.max(brushSize + 10, 16)
+              ? eraseRadius * 2
               : brushSize;
+
+            const glowBlur = getGlowBlur(glowValue);
+
+            if (isOpenPalm) {
+              landmarkCtx.save();
+              landmarkCtx.beginPath();
+              landmarkCtx.arc(
+                palmCenterX,
+                palmCenterY,
+                eraseRadius,
+                0,
+                Math.PI * 2
+              );
+              landmarkCtx.setLineDash([6, 5]);
+              landmarkCtx.lineWidth = 2;
+              landmarkCtx.strokeStyle = "#ff2d75";
+              landmarkCtx.shadowColor = "#ff2d75";
+              landmarkCtx.shadowBlur = 10;
+              landmarkCtx.stroke();
+              landmarkCtx.restore();
+            } else {
+              landmarkCtx.beginPath();
+              landmarkCtx.arc(x, y, 10, 0, Math.PI * 2);
+              landmarkCtx.fillStyle = "red";
+              landmarkCtx.shadowColor = "red";
+              landmarkCtx.shadowBlur = 10;
+              landmarkCtx.fill();
+              landmarkCtx.shadowBlur = 0;
+            }
 
             if (isDrawGesture || isOpenPalm) {
               setMode(isOpenPalm ? "ERASING" : "DRAWING");
+
+              const activeX = isOpenPalm ? palmCenterX : x;
+              const activeY = isOpenPalm ? palmCenterY : y;
 
               if (!currentStrokeRef.current) {
                 currentStrokeRef.current = {
                   color: isOpenPalm ? "erase" : selectedColor,
                   size: activeSize,
-                  points: [{ x, y }],
+                  glowBlur,
+                  points: [{ x: activeX, y: activeY }],
                 };
               } else {
-                currentStrokeRef.current.points.push({ x, y });
+                currentStrokeRef.current.points.push({
+                  x: activeX,
+                  y: activeY,
+                });
               }
 
               if (prevPointRef.current) {
                 drawCtx.beginPath();
                 drawCtx.moveTo(prevPointRef.current.x, prevPointRef.current.y);
-                drawCtx.lineTo(x, y);
+                drawCtx.lineTo(activeX, activeY);
 
                 if (isOpenPalm) {
                   drawCtx.globalCompositeOperation = "destination-out";
                   drawCtx.strokeStyle = "rgba(0,0,0,1)";
+                  drawCtx.shadowBlur = 0;
+                  drawCtx.shadowColor = "transparent";
                 } else {
                   drawCtx.globalCompositeOperation = "source-over";
                   drawCtx.strokeStyle = selectedColor;
+                  drawCtx.shadowColor = selectedColor;
+                  drawCtx.shadowBlur = glowBlur;
                 }
 
                 drawCtx.lineWidth = activeSize;
                 drawCtx.lineCap = "round";
                 drawCtx.lineJoin = "round";
                 drawCtx.stroke();
+
                 drawCtx.globalCompositeOperation = "source-over";
+                drawCtx.shadowBlur = 0;
+                drawCtx.shadowColor = "transparent";
               }
 
-              prevPointRef.current = { x, y };
+              prevPointRef.current = { x: activeX, y: activeY };
             } else {
               setMode("READY");
 
@@ -254,7 +322,7 @@ const Draw = () => {
         stream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [selectedColor, brushSize]);
+  }, [selectedColor, brushSize, glowValue]);
 
   const handleClearCanvas = () => {
     const drawCanvas = drawCanvasRef.current;
@@ -313,6 +381,8 @@ const Draw = () => {
           onColorChange={setSelectedColor}
           brushSize={brushSize}
           onBrushSizeChange={setBrushSize}
+          glowValue={glowValue}
+          onGlowChange={setGlowValue}
           onClear={handleClearCanvas}
           onSave={handleSaveImage}
           onUndo={handleUndo}

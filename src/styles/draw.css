@@ -1,6 +1,8 @@
 .draw-page {
   width: 100%;
   height: 100vh;
+  position: relative;
+  overflow: hidden;
   background:
     radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.08), transparent 30%),
     radial-gradient(circle at 10% 50%, rgba(77, 109, 255, 0.08), transparent 22%),
@@ -8,8 +10,6 @@
     radial-gradient(circle at 94% 28%, rgba(255, 0, 212, 0.08), transparent 12%),
     radial-gradient(circle at 97% 24%, rgba(57, 255, 20, 0.08), transparent 10%),
     radial-gradient(circle at center, #1a1c24, #090a0f 70%);
-  position: relative;
-  overflow: hidden;
 }
 
 .camera-status {
@@ -31,13 +31,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 28px;
-  padding: 30px 28px;
+  gap: 18px;
+  padding: 18px 18px;
 }
 
 .camera-container {
   flex: 1;
-  height: 88vh;
+  height: calc(100vh - 36px);
+  min-width: 0;
   border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, 0.05);
   background: rgba(255, 255, 255, 0.02);
@@ -55,7 +56,7 @@
   object-fit: cover;
   border-radius: 28px;
   transform: scaleX(-1);
-  filter: blur(2px) brightness(0.38) saturate(0.75);
+  filter: blur(2px) brightness(0.35) saturate(0.75);
   opacity: 0.9;
 }
 
@@ -69,16 +70,7 @@
   pointer-events: none;
 }
 
-.draw-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 28px;
-  pointer-events: none;
-  transform: scaleX(-1);
-}
-
+.draw-canvas,
 .landmark-canvas {
   position: absolute;
   inset: 0;
@@ -89,95 +81,198 @@
   transform: scaleX(-1);
 }
 
+/* RIGHT PANEL — tuned to reference */
+
 .control-panel {
-  width: 190px;
-  min-height: 690px;
-  background: rgba(18, 20, 28, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 32px;
-  padding: 22px 18px;
+  width: 138px;
+  height: 630px;
+  flex-shrink: 0;
+  background: rgba(10, 12, 20, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 28px;
+  padding: 14px 10px 14px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   box-shadow:
-    0 0 30px rgba(0, 0, 0, 0.28),
-    inset 0 0 18px rgba(255, 255, 255, 0.015);
-  backdrop-filter: blur(12px);
+    0 0 30px rgba(0, 0, 0, 0.34),
+    inset 0 0 18px rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.panel-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .panel-section {
-  margin-bottom: 28px;
+  width: 100%;
   text-align: center;
+  margin-bottom: 8px;
 }
 
 .panel-section h4 {
-  font-size: 13px;
-  letter-spacing: 1.8px;
-  color: #777;
-  margin-bottom: 14px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0 0 10px;
+  font-weight: 700;
 }
 
+/* COLORS */
+
 .color-palette {
+  width: 100%;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  row-gap: 8px;
+  column-gap: 6px;
   justify-items: center;
+  align-items: center;
+  padding: 0 1px;
 }
 
 .color-dot {
-  width: 34px;
-  height: 34px;
+  width: 27px;
+  height: 27px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
   box-shadow:
-    0 0 16px rgba(255, 255, 255, 0.08),
-    inset 0 0 8px rgba(255, 255, 255, 0.08);
+    0 0 10px rgba(255, 255, 255, 0.08),
+    inset 0 0 6px rgba(255, 255, 255, 0.18);
 }
 
 .active-color {
-  outline: 3px solid white;
-  outline-offset: 3px;
+  outline: 2px solid white;
+  outline-offset: 2px;
+  box-shadow:
+    0 0 14px rgba(255, 255, 255, 0.22),
+    0 0 22px rgba(25, 230, 255, 0.24);
 }
 
-.panel-section input[type="range"] {
-  width: 100%;
-  margin-bottom: 8px;
+/* SLIDERS */
+
+.vertical-slider-wrap {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vertical-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 68px;
+  height: 3px;
+  transform: rotate(-90deg);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  outline: none;
+}
+
+.vertical-slider::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.vertical-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 17px;
+  height: 17px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: #f2f2f2;
+  border: 2px solid rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 0 10px rgba(255, 255, 255, 0.28),
+    0 0 18px rgba(255, 255, 255, 0.14);
+  cursor: pointer;
+}
+
+.vertical-slider::-moz-range-track {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.vertical-slider::-moz-range-thumb {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #f2f2f2;
+  border: 2px solid rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 0 10px rgba(255, 255, 255, 0.28),
+    0 0 18px rgba(255, 255, 255, 0.14);
+  cursor: pointer;
 }
 
 .panel-section p {
-  font-size: 14px;
-  color: #8f8f8f;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 4px 0 0;
+  font-weight: 600;
 }
+
+.panel-divider {
+  width: 34px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 8px auto 10px;
+}
+
+/* BUTTONS */
 
 .panel-actions {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-top: auto;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .panel-actions button {
-  width: 100%;
-  height: 54px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(26, 29, 38, 0.72);
-  color: white;
-  font-size: 22px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(18, 20, 28, 0.6);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 18px;
   cursor: pointer;
-  transition: 0.2s ease;
   backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .panel-actions button:hover {
-  background: rgba(36, 40, 52, 0.85);
   transform: translateY(-1px);
+  background: rgba(28, 31, 42, 0.82);
+  border-color: rgba(255, 255, 255, 0.14);
 }
+
+.panel-actions .active-tool {
+  width: 42px;
+  height: 42px;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow:
+    inset 0 0 10px rgba(255, 255, 255, 0.05),
+    0 0 16px rgba(255, 255, 255, 0.08);
+}
+
+/* STATUS BADGE */
 
 .status-badge {
   position: absolute;
-  bottom: 22px;
+  bottom: 18px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(10, 10, 14, 0.82);
@@ -199,4 +294,32 @@
 
 .status-icon {
   font-size: 22px;
+}
+
+@media (max-width: 900px) {
+  .draw-area {
+    gap: 12px;
+    padding: 14px 12px;
+  }
+
+  .control-panel {
+    width: 128px;
+    height: 600px;
+    padding: 12px 8px 12px;
+  }
+
+  .color-dot {
+    width: 24px;
+    height: 24px;
+  }
+
+  .panel-actions button {
+    width: 34px;
+    height: 34px;
+  }
+
+  .panel-actions .active-tool {
+    width: 38px;
+    height: 38px;
+  }
 }

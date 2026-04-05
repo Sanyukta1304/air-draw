@@ -1,8 +1,8 @@
 const colors = [
-  "#00e5ff",
+  "#19e6ff",
   "#ff00d4",
   "#39ff14",
-  "#4d6dff",
+  "#5a73ff",
   "#ff2d75",
   "#ffd600",
   "#a100ff",
@@ -12,12 +12,14 @@ const colors = [
 const ColorPalette = ({ selectedColor, onColorChange }) => {
   return (
     <div className="color-palette">
-      {colors.map((color, index) => (
+      {colors.map((color) => (
         <button
-          key={index}
+          key={color}
           className={`color-dot ${selectedColor === color ? "active-color" : ""}`}
           style={{ backgroundColor: color }}
           onClick={() => onColorChange(color)}
+          type="button"
+          aria-label={`Select color ${color}`}
         />
       ))}
     </div>
