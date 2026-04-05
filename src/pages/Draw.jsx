@@ -8,7 +8,7 @@ const Draw = () => {
   const landmarkCanvasRef = useRef(null);
   const drawCanvasRef = useRef(null);
 
-  const [mode, setMode] = useState("LOADING");
+  const [mode, setMode] = useState("READY");
   const [selectedColor, setSelectedColor] = useState("#00e5ff");
   const [brushSize, setBrushSize] = useState(6);
 
@@ -163,8 +163,8 @@ const Draw = () => {
               indexUp && middleUp && ringUp && pinkyUp;
 
             const activeSize = isOpenPalm
-            ? Math.max(brushSize + 10, 16)
-            : brushSize;
+              ? Math.max(brushSize + 10, 16)
+              : brushSize;
 
             if (isDrawGesture || isOpenPalm) {
               setMode(isOpenPalm ? "ERASING" : "DRAWING");
@@ -183,9 +183,10 @@ const Draw = () => {
                 drawCtx.beginPath();
                 drawCtx.moveTo(prevPointRef.current.x, prevPointRef.current.y);
                 drawCtx.lineTo(x, y);
+
                 if (isOpenPalm) {
                   drawCtx.globalCompositeOperation = "destination-out";
-                  drawCtx.strokeStyle = "rgba(0,0,0,1)"; 
+                  drawCtx.strokeStyle = "rgba(0,0,0,1)";
                 } else {
                   drawCtx.globalCompositeOperation = "source-over";
                   drawCtx.strokeStyle = selectedColor;
@@ -195,13 +196,12 @@ const Draw = () => {
                 drawCtx.lineCap = "round";
                 drawCtx.lineJoin = "round";
                 drawCtx.stroke();
-
                 drawCtx.globalCompositeOperation = "source-over";
               }
 
               prevPointRef.current = { x, y };
             } else {
-              setMode("HAND DETECTED");
+              setMode("READY");
 
               if (currentStrokeRef.current) {
                 if (currentStrokeRef.current.points.length > 1) {
@@ -213,7 +213,7 @@ const Draw = () => {
               prevPointRef.current = null;
             }
           } else {
-            setMode("SHOW HAND");
+            setMode("READY");
 
             if (currentStrokeRef.current) {
               if (currentStrokeRef.current.points.length > 1) {
@@ -266,6 +266,7 @@ const Draw = () => {
     strokesRef.current = [];
     currentStrokeRef.current = null;
     prevPointRef.current = null;
+    setMode("READY");
   };
 
   const handleUndo = () => {
@@ -276,6 +277,7 @@ const Draw = () => {
     strokesRef.current.pop();
     prevPointRef.current = null;
     redrawStrokes();
+    setMode("READY");
   };
 
   const handleSaveImage = () => {
@@ -301,6 +303,7 @@ const Draw = () => {
             muted
             className="video-feed"
           />
+          <div className="camera-overlay"></div>
           <canvas ref={drawCanvasRef} className="draw-canvas" />
           <canvas ref={landmarkCanvasRef} className="landmark-canvas" />
         </div>
