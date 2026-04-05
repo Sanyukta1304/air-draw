@@ -1,9 +1,12 @@
+
 import { useNavigate } from "react-router-dom";
 import GestureCard from "../components/GestureCard";
 import "../styles/home.css";
 
 const Home = () => {
   const navigate = useNavigate();
+
+  
 
   return (
     <div className="home-container">
@@ -18,17 +21,17 @@ const Home = () => {
         <GestureCard
           icon="✋"
           title="Erase"
-          desc="Sweep open palm to erase"
+          desc="Open palm to erase"
         />
         <GestureCard
           icon="🤏"
           title="Move"
-          desc="Pinch to grab & reposition"
+          desc="Move hand smoothly to control drawing"
         />
         <GestureCard
           icon="✊"
           title="Idle"
-          desc="Close fist to rest"
+          desc="Lower hand to stop drawing"
         />
       </div>
 

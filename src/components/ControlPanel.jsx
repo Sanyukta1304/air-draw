@@ -6,6 +6,8 @@ const ControlPanel = ({
   brushSize,
   onBrushSizeChange,
   onClear,
+  onSave,
+  onUndo,
 }) => {
   return (
     <div className="control-panel">
@@ -38,10 +40,9 @@ const ControlPanel = ({
       </div>
 
       <div className="panel-actions">
-        <button title="Undo">↶</button>
+        <button title="Undo" onClick={onUndo}>↶</button>
         <button title="Clear" onClick={onClear}>🗑</button>
-        <button title="Eraser">🧽</button>
-        <button title="Save">⇩</button>
+        <button title="Save" onClick={onSave}>⇩</button>
       </div>
     </div>
   );

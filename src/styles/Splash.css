@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
+.splash-page {
+  width: 100%;
+  height: 100vh;
+  background: radial-gradient(circle at center, #05070d, #02030a 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  transform: translateY(-70px);
+}
+
+.splash-logo {
+  font-family: "Great Vibes", cursive;
+  font-size: 7rem;
+  font-weight: 400;
+  color: #f8f8f8;
+  line-height: 1;
+  letter-spacing: 1px;
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.08),
+    0 0 24px rgba(255, 255, 255, 0.06);
+}
+
+.splash-text {
+  font-size: 1rem;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.loading-line {
+  width: 180px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+.loading-bar {
+  width: 40%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.7);
+  animation: loadingMove 1.5s infinite ease-in-out;
+}
+
+@keyframes loadingMove {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}

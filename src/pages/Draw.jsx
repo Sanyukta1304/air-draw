@@ -13,6 +13,42 @@ const Draw = () => {
   const [brushSize, setBrushSize] = useState(6);
 
   const prevPointRef = useRef(null);
+  const strokesRef = useRef([]);
+  const currentStrokeRef = useRef(null);
+
+  const redrawStrokes = () => {
+    const drawCanvas = drawCanvasRef.current;
+    if (!drawCanvas) return;
+
+    const ctx = drawCanvas.getContext("2d");
+    ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+
+    strokesRef.current.forEach((stroke) => {
+      if (!stroke.points || stroke.points.length < 2) return;
+
+      ctx.beginPath();
+      ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+
+      for (let i = 1; i < stroke.points.length; i++) {
+        ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+      }
+
+      if (stroke.color === "erase") {
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.strokeStyle = "rgba(0,0,0,1)";
+      } else {
+        ctx.globalCompositeOperation = "source-over";
+        ctx.strokeStyle = stroke.color;
+      }
+
+      ctx.lineWidth = stroke.size;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.stroke();
+
+      ctx.globalCompositeOperation = "source-over";
+    });
+  };
 
   useEffect(() => {
     let stream;
@@ -84,6 +120,7 @@ const Draw = () => {
           if (drawCanvas.width !== width || drawCanvas.height !== height) {
             drawCanvas.width = width;
             drawCanvas.height = height;
+            redrawStrokes();
           }
 
           landmarkCtx.clearRect(0, 0, width, height);
@@ -115,28 +152,76 @@ const Draw = () => {
             landmarkCtx.fill();
 
             const indexUp = landmarks[8].y < landmarks[6].y;
+            const middleUp = landmarks[12].y < landmarks[10].y;
+            const ringUp = landmarks[16].y < landmarks[14].y;
+            const pinkyUp = landmarks[20].y < landmarks[18].y;
 
-            if (indexUp) {
-              setMode("DRAWING");
+            const isDrawGesture =
+              indexUp && !middleUp && !ringUp && !pinkyUp;
+
+            const isOpenPalm =
+              indexUp && middleUp && ringUp && pinkyUp;
+
+            const activeSize = isOpenPalm
+            ? Math.max(brushSize + 10, 16)
+            : brushSize;
+
+            if (isDrawGesture || isOpenPalm) {
+              setMode(isOpenPalm ? "ERASING" : "DRAWING");
+
+              if (!currentStrokeRef.current) {
+                currentStrokeRef.current = {
+                  color: isOpenPalm ? "erase" : selectedColor,
+                  size: activeSize,
+                  points: [{ x, y }],
+                };
+              } else {
+                currentStrokeRef.current.points.push({ x, y });
+              }
 
               if (prevPointRef.current) {
                 drawCtx.beginPath();
                 drawCtx.moveTo(prevPointRef.current.x, prevPointRef.current.y);
                 drawCtx.lineTo(x, y);
-                drawCtx.strokeStyle = selectedColor;
-                drawCtx.lineWidth = brushSize;
+                if (isOpenPalm) {
+                  drawCtx.globalCompositeOperation = "destination-out";
+                  drawCtx.strokeStyle = "rgba(0,0,0,1)"; 
+                } else {
+                  drawCtx.globalCompositeOperation = "source-over";
+                  drawCtx.strokeStyle = selectedColor;
+                }
+
+                drawCtx.lineWidth = activeSize;
                 drawCtx.lineCap = "round";
                 drawCtx.lineJoin = "round";
                 drawCtx.stroke();
+
+                drawCtx.globalCompositeOperation = "source-over";
               }
 
               prevPointRef.current = { x, y };
             } else {
               setMode("HAND DETECTED");
+
+              if (currentStrokeRef.current) {
+                if (currentStrokeRef.current.points.length > 1) {
+                  strokesRef.current.push(currentStrokeRef.current);
+                }
+                currentStrokeRef.current = null;
+              }
+
               prevPointRef.current = null;
             }
           } else {
             setMode("SHOW HAND");
+
+            if (currentStrokeRef.current) {
+              if (currentStrokeRef.current.points.length > 1) {
+                strokesRef.current.push(currentStrokeRef.current);
+              }
+              currentStrokeRef.current = null;
+            }
+
             prevPointRef.current = null;
           }
         });
@@ -177,7 +262,30 @@ const Draw = () => {
 
     const drawCtx = drawCanvas.getContext("2d");
     drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+
+    strokesRef.current = [];
+    currentStrokeRef.current = null;
     prevPointRef.current = null;
+  };
+
+  const handleUndo = () => {
+    if (currentStrokeRef.current) {
+      currentStrokeRef.current = null;
+    }
+
+    strokesRef.current.pop();
+    prevPointRef.current = null;
+    redrawStrokes();
+  };
+
+  const handleSaveImage = () => {
+    const drawCanvas = drawCanvasRef.current;
+    if (!drawCanvas) return;
+
+    const link = document.createElement("a");
+    link.download = `air-draw-${Date.now()}.png`;
+    link.href = drawCanvas.toDataURL("image/png");
+    link.click();
   };
 
   return (
@@ -203,6 +311,8 @@ const Draw = () => {
           brushSize={brushSize}
           onBrushSizeChange={setBrushSize}
           onClear={handleClearCanvas}
+          onSave={handleSaveImage}
+          onUndo={handleUndo}
         />
       </div>
 
