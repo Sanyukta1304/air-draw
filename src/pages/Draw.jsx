@@ -15,33 +15,69 @@ const Draw = () => {
 
   const prevPointRef = useRef(null);
   const smoothedPointRef = useRef(null);
+  const smoothedDragPointRef = useRef(null);
+
   const strokesRef = useRef([]);
   const currentStrokeRef = useRef(null);
 
-  const getGlowBlur = (glow) => {
-    return Math.max((glow / 100) * 18, 0);
-  };
+  const isMovingRef = useRef(false);
+  const pinchPointRef = useRef(null);
+  const selectedStrokeIndexRef = useRef(null);
 
-  const smoothPoint = (newX, newY) => {
-    const smoothingFactor = 0.22;
+  const getGlowBlur = (glow) => Math.max((glow / 100) * 18, 0);
 
-    if (!smoothedPointRef.current) {
-      smoothedPointRef.current = { x: newX, y: newY };
-      return smoothedPointRef.current;
+  const smoothPoint = (newX, newY, ref, factor = 0.22) => {
+    if (!ref.current) {
+      ref.current = { x: newX, y: newY };
+      return ref.current;
     }
 
-    const prev = smoothedPointRef.current;
+    const prev = ref.current;
+    const smoothX = prev.x + (newX - prev.x) * factor;
+    const smoothY = prev.y + (newY - prev.y) * factor;
 
-    const smoothX = prev.x + (newX - prev.x) * smoothingFactor;
-    const smoothY = prev.y + (newY - prev.y) * smoothingFactor;
-
-    smoothedPointRef.current = { x: smoothX, y: smoothY };
-    return smoothedPointRef.current;
+    ref.current = { x: smoothX, y: smoothY };
+    return ref.current;
   };
 
   const getDistance = (p1, p2) => {
     if (!p1 || !p2) return 0;
     return Math.hypot(p2.x - p1.x, p2.y - p1.y);
+  };
+
+  const findClosestStrokeIndex = (x, y) => {
+    if (strokesRef.current.length === 0) return null;
+
+    let closestStrokeIndex = null;
+    let closestDistance = Infinity;
+
+    strokesRef.current.forEach((stroke, strokeIndex) => {
+      if (!stroke?.points?.length) return;
+
+      stroke.points.forEach((pt) => {
+        const d = Math.hypot(pt.x - x, pt.y - y);
+        if (d < closestDistance) {
+          closestDistance = d;
+          closestStrokeIndex = strokeIndex;
+        }
+      });
+    });
+
+    return closestDistance <= 45 ? closestStrokeIndex : null;
+  };
+
+  const moveSelectedStroke = (dx, dy) => {
+    const index = selectedStrokeIndexRef.current;
+    if (index === null || index < 0 || index >= strokesRef.current.length) return;
+
+    const stroke = strokesRef.current[index];
+    strokesRef.current[index] = {
+      ...stroke,
+      points: stroke.points.map((pt) => ({
+        x: pt.x + dx,
+        y: pt.y + dy,
+      })),
+    };
   };
 
   const redrawStrokes = () => {
@@ -51,7 +87,7 @@ const Draw = () => {
     const ctx = drawCanvas.getContext("2d");
     ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
 
-    strokesRef.current.forEach((stroke) => {
+    strokesRef.current.forEach((stroke, index) => {
       if (!stroke.points || stroke.points.length < 2) return;
 
       ctx.beginPath();
@@ -61,6 +97,9 @@ const Draw = () => {
         ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
       }
 
+      const isSelected =
+        index === selectedStrokeIndexRef.current && isMovingRef.current;
+
       if (stroke.color === "erase") {
         ctx.globalCompositeOperation = "destination-out";
         ctx.shadowBlur = 0;
@@ -68,9 +107,11 @@ const Draw = () => {
         ctx.strokeStyle = "rgba(0,0,0,1)";
       } else {
         ctx.globalCompositeOperation = "source-over";
-        ctx.strokeStyle = stroke.color;
-        ctx.shadowColor = stroke.color;
-        ctx.shadowBlur = stroke.glowBlur ?? 0;
+        ctx.strokeStyle = isSelected ? "#ffd600" : stroke.color;
+        ctx.shadowColor = isSelected ? "#ffd600" : stroke.color;
+        ctx.shadowBlur = isSelected
+          ? Math.max((stroke.glowBlur ?? 0) + 8, 12)
+          : stroke.glowBlur ?? 0;
       }
 
       ctx.lineWidth = stroke.size;
@@ -176,9 +217,13 @@ const Draw = () => {
               radius: 3,
             });
 
+            const thumbTip = landmarks[4];
             const indexTip = landmarks[8];
-            const x = indexTip.x * width;
-            const y = indexTip.y * height;
+
+            const indexX = indexTip.x * width;
+            const indexY = indexTip.y * height;
+            const thumbX = thumbTip.x * width;
+            const thumbY = thumbTip.y * height;
 
             const indexUp = landmarks[8].y < landmarks[6].y;
             const middleUp = landmarks[12].y < landmarks[10].y;
@@ -190,6 +235,12 @@ const Draw = () => {
 
             const isOpenPalm =
               indexUp && middleUp && ringUp && pinkyUp;
+
+            const isIdleGesture =
+              !indexUp && !middleUp && !ringUp && !pinkyUp;
+
+            const pinchDistance = Math.hypot(thumbX - indexX, thumbY - indexY);
+            const isPinching = pinchDistance < 42 && !isDrawGesture && !isOpenPalm;
 
             const palmCenterX =
               ((landmarks[0].x +
@@ -216,6 +267,7 @@ const Draw = () => {
 
             const glowBlur = getGlowBlur(glowValue);
 
+            // Visual markers
             if (isOpenPalm) {
               landmarkCtx.save();
               landmarkCtx.beginPath();
@@ -233,9 +285,27 @@ const Draw = () => {
               landmarkCtx.shadowBlur = 10;
               landmarkCtx.stroke();
               landmarkCtx.restore();
+            } else if (isPinching) {
+              const pinchRawX = (thumbX + indexX) / 2;
+              const pinchRawY = (thumbY + indexY) / 2;
+
+              landmarkCtx.save();
+              landmarkCtx.beginPath();
+              landmarkCtx.arc(pinchRawX, pinchRawY, 12, 0, Math.PI * 2);
+              landmarkCtx.fillStyle = "rgba(255,214,0,0.16)";
+              landmarkCtx.fill();
+
+              landmarkCtx.beginPath();
+              landmarkCtx.arc(pinchRawX, pinchRawY, 12, 0, Math.PI * 2);
+              landmarkCtx.lineWidth = 2;
+              landmarkCtx.strokeStyle = "#ffd600";
+              landmarkCtx.shadowColor = "#ffd600";
+              landmarkCtx.shadowBlur = 10;
+              landmarkCtx.stroke();
+              landmarkCtx.restore();
             } else {
               landmarkCtx.beginPath();
-              landmarkCtx.arc(x, y, 10, 0, Math.PI * 2);
+              landmarkCtx.arc(indexX, indexY, 10, 0, Math.PI * 2);
               landmarkCtx.fillStyle = "red";
               landmarkCtx.shadowColor = "red";
               landmarkCtx.shadowBlur = 10;
@@ -243,20 +313,152 @@ const Draw = () => {
               landmarkCtx.shadowBlur = 0;
             }
 
-            if (isDrawGesture || isOpenPalm) {
-              setMode(isOpenPalm ? "ERASING" : "DRAWING");
+            // 1. MOVE has highest priority
+            if (isPinching) {
+              if (currentStrokeRef.current) {
+                if (currentStrokeRef.current.points.length > 1) {
+                  strokesRef.current.push(currentStrokeRef.current);
+                }
+                currentStrokeRef.current = null;
+              }
 
-              const rawX = isOpenPalm ? palmCenterX : x;
-              const rawY = isOpenPalm ? palmCenterY : y;
+              const pinchRawX = (thumbX + indexX) / 2;
+              const pinchRawY = (thumbY + indexY) / 2;
 
-              const smoothed = smoothPoint(rawX, rawY);
+              const smoothPinch = smoothPoint(
+                pinchRawX,
+                pinchRawY,
+                smoothedDragPointRef,
+                0.28
+              );
+
+              const pinchX = smoothPinch.x;
+              const pinchY = smoothPinch.y;
+
+              setMode("MOVING");
+
+              if (!isMovingRef.current) {
+                const pickedIndex = findClosestStrokeIndex(pinchX, pinchY);
+                selectedStrokeIndexRef.current = pickedIndex;
+
+                if (pickedIndex !== null) {
+                  isMovingRef.current = true;
+                  pinchPointRef.current = { x: pinchX, y: pinchY };
+                  redrawStrokes();
+                }
+              } else if (
+                pinchPointRef.current &&
+                selectedStrokeIndexRef.current !== null
+              ) {
+                const dx = pinchX - pinchPointRef.current.x;
+                const dy = pinchY - pinchPointRef.current.y;
+
+                if (Math.abs(dx) > 0.35 || Math.abs(dy) > 0.35) {
+                  moveSelectedStroke(dx, dy);
+                  redrawStrokes();
+                }
+
+                pinchPointRef.current = { x: pinchX, y: pinchY };
+              }
+
+              prevPointRef.current = null;
+              smoothedPointRef.current = null;
+              return;
+            }
+
+            // End move when pinch released
+            if (isMovingRef.current) {
+              isMovingRef.current = false;
+              pinchPointRef.current = null;
+              smoothedDragPointRef.current = null;
+              redrawStrokes();
+              selectedStrokeIndexRef.current = null;
+            }
+
+            // 2. ERASE
+            if (isOpenPalm) {
+              setMode("ERASING");
+
+              const smoothed = smoothPoint(
+                palmCenterX,
+                palmCenterY,
+                smoothedPointRef,
+                0.22
+              );
+
               const activeX = smoothed.x;
               const activeY = smoothed.y;
 
               if (!currentStrokeRef.current) {
                 currentStrokeRef.current = {
-                  color: isOpenPalm ? "erase" : selectedColor,
+                  color: "erase",
                   size: activeSize,
+                  glowBlur: 0,
+                  points: [{ x: activeX, y: activeY }],
+                };
+              } else {
+                const lastPoint =
+                  currentStrokeRef.current.points[
+                    currentStrokeRef.current.points.length - 1
+                  ];
+
+                const moveDistance = getDistance(lastPoint, {
+                  x: activeX,
+                  y: activeY,
+                });
+
+                if (moveDistance > 2.2) {
+                  currentStrokeRef.current.points.push({
+                    x: activeX,
+                    y: activeY,
+                  });
+                }
+              }
+
+              if (prevPointRef.current) {
+                const lineDistance = getDistance(prevPointRef.current, {
+                  x: activeX,
+                  y: activeY,
+                });
+
+                if (lineDistance > 1.8) {
+                  drawCtx.beginPath();
+                  drawCtx.moveTo(prevPointRef.current.x, prevPointRef.current.y);
+                  drawCtx.lineTo(activeX, activeY);
+                  drawCtx.globalCompositeOperation = "destination-out";
+                  drawCtx.strokeStyle = "rgba(0,0,0,1)";
+                  drawCtx.shadowBlur = 0;
+                  drawCtx.shadowColor = "transparent";
+                  drawCtx.lineWidth = activeSize;
+                  drawCtx.lineCap = "round";
+                  drawCtx.lineJoin = "round";
+                  drawCtx.stroke();
+                  drawCtx.globalCompositeOperation = "source-over";
+                }
+              }
+
+              prevPointRef.current = { x: activeX, y: activeY };
+              return;
+            }
+
+            // 3. DRAW
+            if (isDrawGesture) {
+              setMode("DRAWING");
+
+              const smoothed = smoothPoint(
+                indexX,
+                indexY,
+                smoothedPointRef,
+                0.22
+              );
+
+              const activeX = smoothed.x;
+              const activeY = smoothed.y;
+
+              if (!currentStrokeRef.current) {
+                currentStrokeRef.current = {
+                  color: selectedColor,
+                  size: brushSize,
                   glowBlur,
                   points: [{ x: activeX, y: activeY }],
                 };
@@ -289,33 +491,26 @@ const Draw = () => {
                   drawCtx.beginPath();
                   drawCtx.moveTo(prevPointRef.current.x, prevPointRef.current.y);
                   drawCtx.lineTo(activeX, activeY);
-
-                  if (isOpenPalm) {
-                    drawCtx.globalCompositeOperation = "destination-out";
-                    drawCtx.strokeStyle = "rgba(0,0,0,1)";
-                    drawCtx.shadowBlur = 0;
-                    drawCtx.shadowColor = "transparent";
-                  } else {
-                    drawCtx.globalCompositeOperation = "source-over";
-                    drawCtx.strokeStyle = selectedColor;
-                    drawCtx.shadowColor = selectedColor;
-                    drawCtx.shadowBlur = glowBlur;
-                  }
-
-                  drawCtx.lineWidth = activeSize;
+                  drawCtx.globalCompositeOperation = "source-over";
+                  drawCtx.strokeStyle = selectedColor;
+                  drawCtx.shadowColor = selectedColor;
+                  drawCtx.shadowBlur = glowBlur;
+                  drawCtx.lineWidth = brushSize;
                   drawCtx.lineCap = "round";
                   drawCtx.lineJoin = "round";
                   drawCtx.stroke();
-
-                  drawCtx.globalCompositeOperation = "source-over";
                   drawCtx.shadowBlur = 0;
                   drawCtx.shadowColor = "transparent";
                 }
               }
 
               prevPointRef.current = { x: activeX, y: activeY };
-            } else {
-              setMode("READY");
+              return;
+            }
+
+            // 4. IDLE
+            if (isIdleGesture) {
+              setMode("IDLE");
 
               if (currentStrokeRef.current) {
                 if (currentStrokeRef.current.points.length > 1) {
@@ -326,8 +521,10 @@ const Draw = () => {
 
               prevPointRef.current = null;
               smoothedPointRef.current = null;
+              return;
             }
-          } else {
+
+            // 5. READY
             setMode("READY");
 
             if (currentStrokeRef.current) {
@@ -339,6 +536,23 @@ const Draw = () => {
 
             prevPointRef.current = null;
             smoothedPointRef.current = null;
+          } else {
+            setMode("READY");
+
+            if (currentStrokeRef.current) {
+              if (currentStrokeRef.current.points.length > 1) {
+                strokesRef.current.push(currentStrokeRef.current);
+              }
+              currentStrokeRef.current = null;
+            }
+
+            isMovingRef.current = false;
+            pinchPointRef.current = null;
+            smoothedDragPointRef.current = null;
+            selectedStrokeIndexRef.current = null;
+            prevPointRef.current = null;
+            smoothedPointRef.current = null;
+            redrawStrokes();
           }
         });
 
@@ -383,6 +597,10 @@ const Draw = () => {
     currentStrokeRef.current = null;
     prevPointRef.current = null;
     smoothedPointRef.current = null;
+    isMovingRef.current = false;
+    pinchPointRef.current = null;
+    smoothedDragPointRef.current = null;
+    selectedStrokeIndexRef.current = null;
     setMode("READY");
   };
 
@@ -394,6 +612,10 @@ const Draw = () => {
     strokesRef.current.pop();
     prevPointRef.current = null;
     smoothedPointRef.current = null;
+    isMovingRef.current = false;
+    pinchPointRef.current = null;
+    smoothedDragPointRef.current = null;
+    selectedStrokeIndexRef.current = null;
     redrawStrokes();
     setMode("READY");
   };
