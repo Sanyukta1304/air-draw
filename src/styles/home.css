@@ -1,66 +1,213 @@
-.home-container {
+@import url("https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap");
+
+.home-page {
+  position: relative;
+  width: 100%;
   height: 100vh;
+  overflow: hidden;
+  background: #07090f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* background base */
+.home-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(85, 105, 180, 0.16), transparent 28%),
+    radial-gradient(circle at 78% 22%, rgba(0, 229, 255, 0.12), transparent 18%),
+    radial-gradient(circle at 86% 28%, rgba(255, 0, 212, 0.1), transparent 14%),
+    radial-gradient(circle at 92% 26%, rgba(57, 255, 20, 0.1), transparent 12%),
+    radial-gradient(circle at 84% 74%, rgba(255, 214, 0, 0.08), transparent 12%),
+    radial-gradient(circle at 15% 85%, rgba(77, 109, 255, 0.07), transparent 15%),
+    radial-gradient(circle at center, #171a22, #07090f 72%);
+  filter: blur(10px) brightness(0.7);
+  transform: scale(1.05);
+}
+
+/* extra blur blobs */
+.home-bg::before,
+.home-bg::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.25;
+}
+
+.home-bg::before {
+  width: 260px;
+  height: 260px;
+  top: 8%;
+  right: 6%;
+  background: linear-gradient(135deg, #00e5ff, #ff00d4, #39ff14);
+}
+
+.home-bg::after {
+  width: 220px;
+  height: 220px;
+  bottom: 5%;
+  left: 10%;
+  background: linear-gradient(135deg, #4d6dff, #ffd600);
+}
+
+/* centered card */
+.home-card {
+  position: relative;
+  z-index: 2;
+  width: 540px;
+  min-height: 600px;
+  padding: 42px 42px 34px;
+  border-radius: 30px;
+  background: rgba(10, 11, 18, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 18px 60px rgba(0, 0, 0, 0.45);
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  background: radial-gradient(circle at center, #11121a, #050507);
+  gap: 26px;
+
+  animation:
+    cardFadeIn 0.9s ease-out forwards,
+    cardFloat 4.5s ease-in-out infinite 1s;
+  opacity: 0;
+  transform: translateY(20px);
 }
 
-.title {
-  font-size: 2.5rem;
-  margin-bottom: 40px;
+.home-logo {
+  font-family: "Great Vibes", cursive;
+  font-size: 2.6rem;
+  color: #f5f5f5;
+  line-height: 1;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.08),
+    0 0 18px rgba(255, 255, 255, 0.06);
 }
 
-.grid {
+.home-title {
+  font-size: 2.1rem;
+  line-height: 1.1;
+  color: #f3f3f5;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.home-grid {
+  width: 100%;
   display: grid;
-  grid-template-columns: repeat(2, 250px);
-  gap: 20px;
-  margin-bottom: 40px;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 26px;
+  row-gap: 22px;
+  margin-top: 4px;
+  margin-bottom: 10px;
 }
 
 .gesture-card {
   display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.gesture-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
   align-items: center;
-  gap: 15px;
-  background: #14151f;
-  padding: 20px;
-  border-radius: 15px;
-  border: 1px solid #2a2b3a;
-  transition: 0.3s;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow:
+    inset 0 0 18px rgba(255, 255, 255, 0.02),
+    0 0 12px rgba(255, 255, 255, 0.03);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
 }
 
-.gesture-card:hover {
-  transform: scale(1.05);
-  border-color: #4f46e5;
+.gesture-card:hover .gesture-icon {
+  transform: translateY(-2px) scale(1.04);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 18px rgba(255, 255, 255, 0.08),
+    0 0 28px rgba(120, 140, 255, 0.08),
+    inset 0 0 18px rgba(255, 255, 255, 0.03);
 }
 
-.icon {
-  font-size: 2rem;
+.gesture-text h4 {
+  margin: 2px 0 4px;
+  color: #f0f0f2;
+  font-size: 1.05rem;
+  font-weight: 700;
 }
 
-.gesture-card h3 {
+.gesture-text p {
   margin: 0;
-  font-size: 1.2rem;
-}
-
-.gesture-card p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #aaa;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.92rem;
+  line-height: 1.35;
+  max-width: 170px;
 }
 
 .start-btn {
-  padding: 15px 40px;
-  border-radius: 30px;
+  margin-top: 6px;
+  padding: 16px 48px;
+  border-radius: 999px;
   border: none;
-  background: white;
-  color: black;
-  font-weight: bold;
+  background: #efefef;
+  color: #111;
+  font-size: 1.05rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: 0.3s;
+  box-shadow:
+    0 0 18px rgba(255, 255, 255, 0.18),
+    0 0 34px rgba(255, 255, 255, 0.1);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 .start-btn:hover {
-  background: #ddd;
+  transform: translateY(-2px) scale(1.03);
+  background: #ffffff;
+  box-shadow:
+    0 0 22px rgba(255, 255, 255, 0.22),
+    0 0 40px rgba(255, 255, 255, 0.14);
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cardFloat {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
