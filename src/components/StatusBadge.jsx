@@ -2,6 +2,8 @@ const StatusBadge = ({ mode }) => {
   const getIcon = () => {
     if (mode === "DRAWING") return "☝️";
     if (mode === "ERASING") return "🖐️";
+    if (mode === "MOVING") return "🤏";
+    if (mode === "IDLE") return "✊";
     if (mode === "READY") return "🖐️";
     if (mode === "ERROR") return "⚠️";
     return "✨";
