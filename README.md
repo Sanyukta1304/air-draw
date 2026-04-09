@@ -106,11 +106,6 @@ Open 👉 `http://localhost:5173`
 
 ---
 
-## 🖼 Preview
-
-> Real-time hand tracking + drawing
----
-
 ## 📌 Future Improvements
 
 * ✏️ Shape recognition (circle, square)
