@@ -1,16 +1,126 @@
-# React + Vite
+# ✨ Air Draw – Gesture Based Drawing App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern **hand-gesture powered drawing application** built using **React + MediaPipe Hands**.
+Draw in the air, erase with your palm, and move sketches using pinch — just like magic ✋✨
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Features
 
-## React Compiler
+### 🎨 Drawing
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+* Point your **index finger** to draw
+* Smooth strokes with interpolation
+* Adjustable **thickness & glow**
 
-## Expanding the ESLint configuration
+### 🖐 Erasing
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+* Show **open palm** to erase
+* Soft circular eraser (like real brush)
+
+### 🤏 Move (Apple Notes Style)
+
+* **Pinch (thumb + index)** to grab drawings
+* Move entire strokes smoothly
+* Selected drawing glows **yellow while dragging**
+
+### ✊ Idle Mode
+
+* Close your hand → pause interaction
+* Prevents accidental drawing
+
+### 🎛 Control Panel
+
+* Color palette 🎨
+* Thickness slider
+* Glow intensity slider
+* Undo / Clear / Save
+
+### 🎬 UI Experience
+
+* Splash screen (SAN handwritten style)
+* Instruction page with animations
+* Glassmorphism + blur UI
+* Smooth transitions & hover effects
+
+---
+
+## 🧠 Tech Stack
+
+* ⚛️ React (Vite)
+* 🎯 MediaPipe Hands (Google)
+* 🎨 HTML5 Canvas
+* 💅 CSS (No Tailwind)
+
+---
+
+## 📂 Project Structure
+
+```
+src/
+ ├── components/
+ │   ├── ControlPanel.jsx
+ │   ├── StatusBadge.jsx
+ │
+ ├── pages/
+ │   ├── Draw.jsx
+ │   ├── Home.jsx
+ │   ├── Splash.jsx
+ │
+ ├── styles/
+ │   ├── draw.css
+ │
+ └── App.jsx
+```
+
+---
+
+## ⚙️ Installation
+
+```bash
+# clone repo
+git clone https://github.com/your-username/air-draw.git
+
+# go to folder
+cd air-draw
+
+# install dependencies
+npm install
+
+# run project
+npm run dev
+```
+
+Open 👉 `http://localhost:5173`
+
+---
+
+## 🎮 How to Use
+
+| Gesture         | Action       |
+| --------------- | ------------ |
+| ☝️ Index finger | Draw         |
+| 🖐 Open palm    | Erase        |
+| 🤏 Pinch        | Move drawing |
+| ✊ Closed hand   | Idle         |
+
+---
+
+## 🖼 Preview
+
+> Real-time hand tracking + drawing
+---
+
+## 📌 Future Improvements
+
+* ✏️ Shape recognition (circle, square)
+* 🎨 Multi-layer support
+* 🤖 AI-based gesture prediction
+* 📱 Mobile optimization
+
+---
+
+
+## ⭐ Show some love
+
+If you like this project, give it a ⭐ on GitHub!
