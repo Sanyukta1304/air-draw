@@ -12,6 +12,7 @@ const Draw = () => {
   const [selectedColor, setSelectedColor] = useState("#19e6ff");
   const [brushSize, setBrushSize] = useState(6);
   const [glowValue, setGlowValue] = useState(60);
+  const [backgroundMode, setBackgroundMode] = useState("blur");
 
   const strokesRef = useRef([]);
   const currentStrokeRef = useRef(null);
@@ -26,6 +27,7 @@ const Draw = () => {
 
   const pinchFramesRef = useRef(0);
   const idleFramesRef = useRef(0);
+  const pinchHoldFramesRef = useRef(0);
 
   const getGlowBlur = (glow) => Math.max((glow / 100) * 18, 0);
 
@@ -54,6 +56,7 @@ const Draw = () => {
     selectedStrokeIndexRef.current = null;
     prevMovePointRef.current = null;
     smoothMovePointRef.current = null;
+    pinchHoldFramesRef.current = 0;
   };
 
   const getDistance = (a, b) => {
@@ -356,16 +359,15 @@ const Draw = () => {
               landmarkCtx.shadowBlur = 0;
             }
 
-            // MOVE
-          if (isPinching) {
-            finalizeCurrentStroke();
-            setMode("MOVING");
-            
-            const smoothMove = smoothPoint(
-              smoothMovePointRef,
-              pinchCenter.x,
-              pinchCenter.y,
-              0.28
+            if (isPinching) {
+              finalizeCurrentStroke();
+              setMode("MOVING");
+
+              const smoothMove = smoothPoint(
+                smoothMovePointRef,
+                pinchCenter.x,
+                pinchCenter.y,
+                0.28
               );
 
               if (!isMovingRef.current) {
@@ -393,26 +395,26 @@ const Draw = () => {
                 return;
               }
 
-if (
-  selectedStrokeIndexRef.current !== null &&
-  prevMovePointRef.current
-) {
-  const dx = smoothMove.x - prevMovePointRef.current.x;
-  const dy = smoothMove.y - prevMovePointRef.current.y;
+              if (
+                selectedStrokeIndexRef.current !== null &&
+                prevMovePointRef.current
+              ) {
+                const dx = smoothMove.x - prevMovePointRef.current.x;
+                const dy = smoothMove.y - prevMovePointRef.current.y;
 
-  if (Math.abs(dx) > 0.35 || Math.abs(dy) > 0.35) {
-    moveSelectedStroke(dx, dy);
-    redrawStrokes();
-  }
+                if (Math.abs(dx) > 0.35 || Math.abs(dy) > 0.35) {
+                  moveSelectedStroke(dx, dy);
+                  redrawStrokes();
+                }
 
-  prevMovePointRef.current = {
-    x: smoothMove.x,
-    y: smoothMove.y,
-  };
-}
+                prevMovePointRef.current = {
+                  x: smoothMove.x,
+                  y: smoothMove.y,
+                };
+              }
 
-return;
-}
+              return;
+            }
 
             if (isMovingRef.current && !isPinching && !rawPinch) {
               if (idleFramesRef.current >= 2 || isDrawGesture || isOpenPalm) {
@@ -421,7 +423,6 @@ return;
               }
             }
 
-            // ERASE
             if (isOpenPalm) {
               setMode("ERASING");
 
@@ -476,7 +477,6 @@ return;
               return;
             }
 
-            // DRAW
             if (isDrawGesture) {
               setMode("DRAWING");
 
@@ -536,14 +536,12 @@ return;
               return;
             }
 
-            // IDLE
             if (isIdleGesture) {
               finalizeCurrentStroke();
               setMode("IDLE");
               return;
             }
 
-            // READY
             finalizeCurrentStroke();
             setMode("READY");
           } catch (err) {
@@ -582,6 +580,12 @@ return;
       }
     };
   }, [selectedColor, brushSize, glowValue]);
+
+  const handleToggleBackground = () => {
+    setBackgroundMode((prev) =>
+      prev === "blur" ? "blackboard" : "blur"
+    );
+  };
 
   const handleClearCanvas = () => {
     const canvas = drawCanvasRef.current;
@@ -625,9 +629,17 @@ return;
             autoPlay
             playsInline
             muted
-            className="video-feed"
+            className={`video-feed ${
+              backgroundMode === "blackboard" ? "blackboard-mode" : ""
+            }`}
           />
-          <div className="camera-overlay"></div>
+
+          <div
+            className={`camera-overlay ${
+              backgroundMode === "blackboard" ? "blackboard-overlay" : ""
+            }`}
+          />
+
           <canvas ref={drawCanvasRef} className="draw-canvas" />
           <canvas ref={landmarkCanvasRef} className="landmark-canvas" />
         </div>
@@ -642,6 +654,8 @@ return;
           onClear={handleClearCanvas}
           onSave={handleSaveImage}
           onUndo={handleUndo}
+          backgroundMode={backgroundMode}
+          onToggleBackground={handleToggleBackground}
         />
       </div>
 

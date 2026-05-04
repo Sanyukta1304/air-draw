@@ -10,6 +10,8 @@ const ControlPanel = ({
   onClear,
   onSave,
   onUndo,
+  backgroundMode,
+  onToggleBackground,
 }) => {
   return (
     <div className="control-panel">
@@ -58,10 +60,26 @@ const ControlPanel = ({
       </div>
 
       <div className="panel-actions">
-        <button title="Undo" onClick={onUndo} type="button">↶</button>
-        <button title="Clear" onClick={onClear} type="button">🗑</button>
-        <button title="Ready" className="active-tool" type="button">☺</button>
-        <button title="Save" onClick={onSave} type="button">⇩</button>
+        <button title="Undo" onClick={onUndo} type="button">
+          ↶
+        </button>
+
+        <button title="Clear" onClick={onClear} type="button">
+          🗑
+        </button>
+
+        <button
+          title="Toggle Background"
+          className="active-tool"
+          type="button"
+          onClick={onToggleBackground}
+        >
+          {backgroundMode === "blackboard" ? "⬛" : "☺"}
+        </button>
+
+        <button title="Save" onClick={onSave} type="button">
+          ⇩
+        </button>
       </div>
     </div>
   );

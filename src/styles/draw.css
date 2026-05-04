@@ -302,6 +302,17 @@
     padding: 14px 12px;
   }
 
+  .blackboard-mode {
+    filter: brightness(0) contrast(1.15);
+    opacity: 0.08;
+  }
+
+  .blackboard-overlay {
+    background:
+      radial-gradient(circle at center, rgba(255, 255, 255, 0.015), transparent 45%),
+      rgba(0, 0, 0, 0.96);
+  }
+
   .control-panel {
     width: 128px;
     height: 600px;
@@ -323,3 +334,12 @@
     height: 38px;
   }
 }
+
+  .video-feed.blackboard-mode {
+    filter: brightness(0) contrast(1.15);
+    opacity: 1;
+  }
+
+  .camera-overlay.blackboard-overlay {
+    background: rgba(0, 0, 0, 0.9);
+  }
